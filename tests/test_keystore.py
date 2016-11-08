@@ -6,8 +6,8 @@ def test_newtable_addone(db_middleware_empty):
     """
     Test that adding a single element works in a new table
     """
-    db = db_middleware_empty
-    table = db.table('someothertable')
+    db_ = db_middleware_empty
+    table = db_.table('someothertable')
     query1 = where('intvalue') == 1
     query2 = where('intvalue') == 2
 
@@ -25,8 +25,8 @@ def test_newtable_addtwo_removefirst(db_middleware_empty):
     """
     Test that adds and removes elements
     """
-    db = db_middleware_empty
-    table = db.table('someothertable')
+    db_ = db_middleware_empty
+    table = db_.table('someothertable')
     query1 = where('intvalue') == 1
     query2 = where('intvalue') == 2
     query3 = where('intvalue') == 3
