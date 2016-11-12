@@ -80,4 +80,28 @@ def test_keylistinit_duplicateselimated():
     db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, ['a', 'b', 'c', 'b', 'c', 'd', 'e', 'd', 'b']))
     assert db_._storage.keylist == ['a', 'b', 'c', 'd', 'e']
 
+def test_onelevelreplace():
+    db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, ['a', 'b', 'c', 'd']))
+    tb_ = db_.table()
+    ks_tb_ = db_._storage.read()['keystore']
+    
+    print(tb_.all())
+    print(ks_tb_)
+    
+    tb_.insert({'myid1':1})
+    
+    print(tb_.all())
+    print(ks_tb_)
+
+    assert len(tb_) == 1
+    assert len(ks_tb_) == 1
+    assert 'myid1' in ks_tb_.keys()
+    assert ks_tb_['myid1'] == 'a'
+    
+    tb_.insert({'myid2':5})
+
+    assert len(tb_) == 2
+    assert len(ks_tb_) == 2
+    assert 'myid2' in ks_tb_.keys()
+    assert ks_tb_['myid2'] == 'b'
 
