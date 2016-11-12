@@ -1,6 +1,7 @@
 from tinydb import where
-
-import pytest
+from tinydb.database import TinyDB
+from tinydb_keystore import KeystoreMiddleware
+from tinydb.storages import MemoryStorage
 
 def test_newtable_addone(db_middleware_empty):
     """
@@ -62,3 +63,21 @@ def test_newtable_addtwo_removefirst(db_middleware_empty):
     assert not table.search(query1)
     assert not table.search(query2)
     assert not table.search(query3)
+
+def test_keylistinit_withelements():
+    db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, ['a', 'b', 'c']))
+    assert db_._storage.keylist == ['a', 'b', 'c']
+
+def test_keylistinit_empty():
+    db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, []))
+    assert db_._storage.keylist == []
+
+def test_keylistinit_unprovided():
+    db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage))
+    assert db_._storage.keylist == []
+
+def test_keylistinit_duplicateselimated():
+    db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, ['a', 'b', 'c', 'b', 'c', 'd', 'e', 'd', 'b']))
+    assert db_._storage.keylist == ['a', 'b', 'c', 'd', 'e']
+
+
