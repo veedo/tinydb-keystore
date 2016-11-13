@@ -2,12 +2,15 @@ from tinydb import where
 from tinydb.database import TinyDB
 from tinydb_keystore import KeystoreMiddleware
 from tinydb.storages import MemoryStorage
+from conftest import db_middleware_empty_withkeylist, db_middleware_empty
 
-def test_newtable_addone(db_middleware_empty):
+import pytest
+
+@pytest.mark.parametrize('db_', [db_middleware_empty(), db_middleware_empty_withkeylist()])
+def test_newtable_addone(db_):
     """
     Test that adding a single element works in a new table
     """
-    db_ = db_middleware_empty
     table = db_.table('someothertable')
     query1 = where('intvalue') == 1
     query2 = where('intvalue') == 2
@@ -22,11 +25,11 @@ def test_newtable_addone(db_middleware_empty):
     assert table.search(query1)
     assert not table.search(query2)
 
-def test_newtable_addtwo_removefirst(db_middleware_empty):
+@pytest.mark.parametrize('db_', [db_middleware_empty(), db_middleware_empty_withkeylist()])
+def test_newtable_addtwo_removefirst(db_):
     """
     Test that adds and removes elements
     """
-    db_ = db_middleware_empty
     table = db_.table('someothertable')
     query1 = where('intvalue') == 1
     query2 = where('intvalue') == 2
@@ -127,7 +130,7 @@ def test_twolevelreplace():
     assert ks_tb_['myid2'] == old_ks_tb_['myid2']
     assert ks_tb_['myid3'] == old_ks_tb_['myid3']
     assert ks_tb_['myid4'] == old_ks_tb_['myid4']
-    
+
 def test_smallkeylist():
     db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, ['a', 'b', 'c', 'd']))
     tb_ = db_.table()
@@ -223,4 +226,58 @@ def test_mutipletable_add():
     assert ks_tb_['myid4'] == old_ks_tb_['myid4']
     assert 'myid5' in ks_tb_.keys()
     assert ks_tb_['myid5'] == 'e'
+    
+def test_deepreplace():
+    db_ = TinyDB(storage=KeystoreMiddleware(MemoryStorage, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']))
+    tb_ = db_.table()
+    ks_tb_ = db_._storage.read()['keystore']
+    
+    tb_.insert({'myid1':1})
+    
+    assert len(tb_) == 1
+    assert len(ks_tb_) == 1
+    assert 'myid1' in ks_tb_.keys()
+    assert ks_tb_['myid1'] == 'a'
+    old_ks_tb_ = ks_tb_.copy()
+    
+    tb_.insert({'myid1':{'myid2':2}})
+    
+    assert len(tb_) == 2
+    assert len(ks_tb_) == 2
+    assert 'myid2' in ks_tb_.keys()
+    assert ks_tb_['myid2'] == 'b'
+    assert ks_tb_['myid1'] == old_ks_tb_['myid1']
+    old_ks_tb_ = ks_tb_.copy()
+    
+    tb_.insert({'myid1':{'myid2':{'myid3':3}}})
+    
+    assert len(tb_) == 3
+    assert len(ks_tb_) == 3
+    assert 'myid3' in ks_tb_.keys()
+    assert ks_tb_['myid3'] == 'c'
+    assert ks_tb_['myid1'] == old_ks_tb_['myid1']
+    assert ks_tb_['myid2'] == old_ks_tb_['myid2']
+    old_ks_tb_ = ks_tb_.copy()
+    
+    tb_.insert({'myid1':{'myid2':{'myid3':{'myid4':4}}}})
+    
+    assert len(tb_) == 4
+    assert len(ks_tb_) == 4
+    assert 'myid4' in ks_tb_.keys()
+    assert ks_tb_['myid4'] == 'd'
+    assert ks_tb_['myid1'] == old_ks_tb_['myid1']
+    assert ks_tb_['myid2'] == old_ks_tb_['myid2']
+    assert ks_tb_['myid3'] == old_ks_tb_['myid3']
+    old_ks_tb_ = ks_tb_.copy()
+    
+    tb_.insert({'myid1':{'myid2':{'myid3':{'myid4':{'myid5':5}}}}})
+    
+    assert len(tb_) == 5
+    assert len(ks_tb_) == 5
+    assert 'myid5' in ks_tb_.keys()
+    assert ks_tb_['myid5'] == 'e'
+    assert ks_tb_['myid1'] == old_ks_tb_['myid1']
+    assert ks_tb_['myid2'] == old_ks_tb_['myid2']
+    assert ks_tb_['myid3'] == old_ks_tb_['myid3']
+    assert ks_tb_['myid4'] == old_ks_tb_['myid4']
 

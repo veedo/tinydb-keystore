@@ -3,7 +3,10 @@ From TinyDB
 https://github.com/msiemens/tinydb/tree/master/tests
 """
 from tinydb import where
+from conftest import db_middleware_populated_withkeylist, db_middleware_populated
+import pytest
 
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_tables_list(db):
     db.table('table1')
     db.table('table2')
@@ -11,6 +14,7 @@ def test_tables_list(db):
     assert db.tables() == set(['_default', 'table1', 'table2', 'keystore'])
 
 
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_one_table(db):
     table1 = db.table('table1')
 
@@ -20,6 +24,7 @@ def test_one_table(db):
     assert table1.get(where('char') == 'b')['char'] == 'b'
 
 
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_multiple_tables(db):
     table1 = db.table('table1')
     table2 = db.table('table2')
@@ -40,6 +45,7 @@ def test_multiple_tables(db):
     assert len(table3) == 0
 
 
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_caching(db):
     table1 = db.table('table1')
     table2 = db.table('table1')
@@ -47,6 +53,7 @@ def test_caching(db):
     assert table1 is table2
 
 
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_query_cache_size(db):
     table = db.table('table3', cache_size=1)
     query = where('int') == 1
@@ -59,6 +66,7 @@ def test_query_cache_size(db):
     assert len(table._query_cache) == 1
 
 
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_lru_cache(db):
     # Test integration into TinyDB
     table = db.table('table3', cache_size=2)
