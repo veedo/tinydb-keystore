@@ -314,6 +314,7 @@ def test_lastid_after_open(tmpdir):
 
 @pytest.mark.skipif(sys.version_info >= (3, 0),
                     reason="requires python2")
+@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
 def test_unicode_memory(db):
     """
     Regression test for issue #28

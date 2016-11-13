@@ -36,6 +36,3 @@ def db_middleware_populated_withkeylist():
     db_.purge_tables()
     populate_db_simple(db_)
     return db_
-
-if __name__ == '__main__':
-    pytest.main()
