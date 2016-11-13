@@ -312,59 +312,6 @@ def test_lastid_after_open(tmpdir):
         assert _db._last_id == NUM
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 0),
-                    reason="requires python2")
-@pytest.mark.parametrize('db', [db_middleware_populated_withkeylist(), db_middleware_populated()])
-def test_unicode_memory(db):
-    """
-    Regression test for issue #28
-    """
-    unic_str = 'ß'.decode('utf-8')
-    byte_str = 'ß'
-
-    db.insert({'value': unic_str})
-    assert db.contains(where('value') == byte_str)
-    assert db.contains(where('value') == unic_str)
-
-    db.purge()
-    db.insert({'value': byte_str})
-    assert db.contains(where('value') == byte_str)
-    assert db.contains(where('value') == unic_str)
-
-
-@pytest.mark.skipif(sys.version_info >= (3, 0),
-                    reason="requires python2")
-def test_unicode_json(tmpdir):
-    """
-    Regression test for issue #28
-    """
-    unic_str1 = 'a'.decode('utf-8')
-    byte_str1 = 'a'
-
-    unic_str2 = 'ß'.decode('utf-8')
-    byte_str2 = 'ß'
-
-    path = str(tmpdir.join('db.json'))
-
-    with TinyDB(path) as _db:
-        _db.purge()
-        _db.insert({'value': byte_str1})
-        _db.insert({'value': byte_str2})
-        assert _db.contains(where('value') == byte_str1)
-        assert _db.contains(where('value') == unic_str1)
-        assert _db.contains(where('value') == byte_str2)
-        assert _db.contains(where('value') == unic_str2)
-
-    with TinyDB(path) as _db:
-        _db.purge()
-        _db.insert({'value': unic_str1})
-        _db.insert({'value': unic_str2})
-        assert _db.contains(where('value') == byte_str1)
-        assert _db.contains(where('value') == unic_str1)
-        assert _db.contains(where('value') == byte_str2)
-        assert _db.contains(where('value') == unic_str2)
-
-
 def test_eids_json(tmpdir):
     """
     Regression test for issue #45
