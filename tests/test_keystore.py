@@ -2,8 +2,9 @@ from tinydb import where
 from tinydb.database import TinyDB
 from tinydb_keystore import KeystoreMiddleware
 from tinydb.storages import MemoryStorage
-from conftest import db_middleware_empty_withkeylist, db_middleware_empty
+from conftest import db_middleware_empty_withkeylist, db_middleware_empty, populate_db_simple
 
+import os
 import pytest
 
 @pytest.mark.parametrize('db_', [db_middleware_empty(), db_middleware_empty_withkeylist()])
@@ -280,4 +281,48 @@ def test_deepreplace():
     assert ks_tb_['myid2'] == old_ks_tb_['myid2']
     assert ks_tb_['myid3'] == old_ks_tb_['myid3']
     assert ks_tb_['myid4'] == old_ks_tb_['myid4']
+
+def test_convertfromnonmiddleware():
+    db_ = TinyDB('test.json')
+    db_.purge_tables()
+    tb_ = db_.table('testtable')
+    populate_db_simple(tb_)
+    tb_.insert({'myid1':1})
+    tb_.insert({'myid1':2, 'myid2':{'myid3':3}})
+    tb_.insert({'myid1':3, 'myid2':{'myid3':{'myid4':4}}})
+    
+    assert len(tb_) == 6
+    assert tb_.count(where('char') == 'a') == 1
+    assert tb_.count(where('char') == 'b') == 1
+    assert tb_.count(where('char') == 'c') == 1
+    assert tb_.get(where('char') == 'a')['char'] == 'a'
+    assert tb_.get(where('char') == 'b')['char'] == 'b'
+    assert tb_.get(where('char') == 'c')['char'] == 'c'
+    assert tb_.get(where('myid1') == 1)['myid1'] == 1
+    assert tb_.get(where('myid1') == 2)['myid1'] == 2
+    assert tb_.get(where('myid1') == 2)['myid2']['myid3'] == 3
+    assert tb_.get(where('myid1') == 3)['myid1'] == 3
+    assert tb_.get(where('myid1') == 3)['myid2']['myid3']['myid4'] == 4
+    
+    db_.close()
+    
+    db_ = TinyDB('test.json', storage=KeystoreMiddleware(key_list=['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']))
+    tb_ = db_.table('testtable')
+    
+    assert len(tb_) == 6
+    assert tb_.count(where('char') == 'a') == 1
+    assert tb_.count(where('char') == 'b') == 1
+    assert tb_.count(where('char') == 'c') == 1
+    assert tb_.get(where('char') == 'a')['char'] == 'a'
+    assert tb_.get(where('char') == 'b')['char'] == 'b'
+    assert tb_.get(where('char') == 'c')['char'] == 'c'
+    assert tb_.get(where('myid1') == 1)['myid1'] == 1
+    assert tb_.get(where('myid1') == 2)['myid1'] == 2
+    assert tb_.get(where('myid1') == 2)['myid2']['myid3'] == 3
+    assert tb_.get(where('myid1') == 3)['myid1'] == 3
+    assert tb_.get(where('myid1') == 3)['myid2']['myid3']['myid4'] == 4
+    
+    db_.close()
+    
+    os.remove('test.json')
 
